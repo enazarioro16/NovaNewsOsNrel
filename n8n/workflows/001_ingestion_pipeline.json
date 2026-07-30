@@ -1,0 +1,99 @@
+{
+  "name": "NovaNews Ingestion Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "interval": 3
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/"
+      },
+      "name": "TechCrunch RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst batchSize = 5;\nlet results = [];\n\nfor (let i = 0; i < items.length; i += batchSize) {\n    const batch = items.slice(i, i + batchSize).map(item => ({\n        title: item.json.title,\n        content: item.json.contentSnippet || item.json.content || item.json.title,\n        originalUrl: item.json.link\n    }));\n\n    results.push({\n        json: {\n            source: { name: \"TechCrunch\", credibilityScore: 85 },\n            articles: batch\n        }\n    });\n}\n\nreturn results;"
+      },
+      "name": "Data Mapping & Batching",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:3001/content/webhook/ingest",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {},
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "x-webhook-secret",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        }
+      },
+      "name": "Inject to NestJS API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "TechCrunch RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TechCrunch RSS": {
+      "main": [
+        [
+          {
+            "node": "Data Mapping & Batching",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Mapping & Batching": {
+      "main": [
+        [
+          {
+            "node": "Inject to NestJS API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
