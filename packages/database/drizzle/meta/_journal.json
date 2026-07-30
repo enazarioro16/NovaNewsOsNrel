@@ -1,0 +1,55 @@
+{
+  "version": "6",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1785217794305,
+      "tag": "0000_curly_machine_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785355160179,
+      "tag": "0001_burly_saracen",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785356750132,
+      "tag": "0002_fixed_spacker_dave",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1785357211556,
+      "tag": "0003_youthful_smiling_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1785357652079,
+      "tag": "0004_illegal_payback",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1785358041198,
+      "tag": "0005_flaky_hemingway",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1785358793518,
+      "tag": "0006_curious_ezekiel_stane",
+      "breakpoints": true
+    }
+  ]
+}

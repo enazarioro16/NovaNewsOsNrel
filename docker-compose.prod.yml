@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  database:
+    image: ankane/pgvector:latest
+    container_name: novanews_db_prod
+    environment:
+      POSTGRES_USER: novanews
+      POSTGRES_PASSWORD: novanews_prod_password
+      POSTGRES_DB: novanews_prod_db
+    volumes:
+      - novanews_pg_data:/var/lib/postgresql/data
+    networks:
+      - novanews_internal
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U novanews"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API y Automation Core (NestJS)
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.prod
+    container_name: novanews_api_prod
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://novanews:novanews_prod_password@database:5432/novanews_prod_db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PORT=3001
+    networks:
+      - novanews_internal
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: always
+
+  # Frontend Público y B2C (Next.js)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.prod
+    container_name: novanews_web_prod
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-super-secret-key-prod}
+    networks:
+      - novanews_internal
+    depends_on:
+      - api
+    restart: always
+
+  # Motor de Automatización y Distribución Externa
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: novanews_n8n_prod
+    environment:
+      - N8N_HOST=n8n.local
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+    volumes:
+      - novanews_n8n_data:/home/node/.n8n
+    networks:
+      - novanews_internal
+    restart: always
+
+  # Reverse Proxy con Auto-SSL (Let's Encrypt)
+  caddy:
+    image: caddy:2-alpine
+    container_name: novanews_caddy_prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN_WEB=${DOMAIN_WEB:-localhost}
+      - DOMAIN_API=${DOMAIN_API:-api.localhost}
+      - DOMAIN_N8N=${DOMAIN_N8N:-n8n.localhost}
+      - TLS_EMAIL=${TLS_EMAIL:-admin@tudominio.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - novanews_caddy_data:/data
+      - novanews_caddy_config:/config
+    networks:
+      - novanews_internal
+    depends_on:
+      - web
+      - api
+
+networks:
+  novanews_internal:
+    driver: bridge
+
+volumes:
+  novanews_pg_data:
+  novanews_n8n_data:
+  novanews_caddy_data:
+  novanews_caddy_config:

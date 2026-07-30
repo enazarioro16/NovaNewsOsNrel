@@ -1,0 +1,22 @@
+{
+  "name": "@novanews/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "push": "drizzle-kit push",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.3",
+    "drizzle-orm": "^0.30.10",
+    "postgres": "^3.4.4"
+  },
+  "devDependencies": {
+    "@novanews/config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "drizzle-kit": "^0.21.4",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@novanews/core",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@novanews/config": "workspace:*",
+    "@types/node": "^26.1.2",
+    "typescript": "^5.0.0"
+  }
+}

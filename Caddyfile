@@ -1,0 +1,14 @@
+{env.DOMAIN_WEB} {
+	reverse_proxy web:3000
+	tls {env.TLS_EMAIL}
+}
+
+{env.DOMAIN_API} {
+	reverse_proxy api:3001
+	tls {env.TLS_EMAIL}
+}
+
+{env.DOMAIN_N8N} {
+	reverse_proxy n8n:5678
+	tls {env.TLS_EMAIL}
+}
