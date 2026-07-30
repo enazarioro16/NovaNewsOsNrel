@@ -7,7 +7,12 @@ const API_BASE = process.env.NODE_ENV === 'production' ? 'http://api:3001' : 'ht
 
 async function getEditorialNews() {
   try {
-    const res = await fetch(`${API_BASE}/editorial/news`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/editorial/news`, { 
+      cache: 'no-store',
+      headers: {
+        'Authorization': 'Bearer internal-server-rsc-token-12345'
+      }
+    });
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
