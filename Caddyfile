@@ -1,11 +1,11 @@
-http://{$DOMAIN_WEB} {
+http://novanewsosnrel.com {
 	reverse_proxy web:3000
 }
 
-http://{$DOMAIN_API} {
+http://api.novanewsosnrel.com {
 	reverse_proxy api:3001
 }
 
-http://{$DOMAIN_N8N} {
+http://n8n.novanewsosnrel.com {
 	reverse_proxy n8n:5678
 }
