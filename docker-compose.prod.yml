@@ -49,6 +49,7 @@ services:
       - AUTH_URL=https://novanewsosnrel.com
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-super-secret-key-prod}
       - AUTH_SECRET=${NEXTAUTH_SECRET:-super-secret-key-prod}
+      - DATABASE_URL=postgres://novanews:novanews_prod_password@database:5432/novanews_prod_db
     networks:
       - novanews_internal
     depends_on:
