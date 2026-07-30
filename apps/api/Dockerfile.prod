@@ -39,9 +39,11 @@ COPY --from=builder /app/packages/core/package.json ./packages/core/
 COPY --from=builder /app/packages/database/package.json ./packages/database/
 COPY --from=builder /app/packages/config/package.json ./packages/config/
 
-# Install ONLY production dependencies
-RUN pnpm install --prod --frozen-lockfile
-
+# Copy node_modules from builder to preserve pnpm workspace symlinks
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/packages/core/node_modules ./packages/core/node_modules
+COPY --from=builder /app/packages/database/node_modules ./packages/database/node_modules
 # Copy built code
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/core/dist ./packages/core/dist
