@@ -15,7 +15,7 @@ export interface AIProcessingResult {
 @Injectable()
 export class AIService {
   private readonly logger = new Logger(AIService.name);
-  private readonly ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MOCK_KEY' });
+  private readonly ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MOCK_KEY', httpOptions: { apiVersion: 'v1' } });
 
   constructor(
     private readonly researchAgent: ResearchAgent,

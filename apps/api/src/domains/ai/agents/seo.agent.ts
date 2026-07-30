@@ -21,7 +21,7 @@ export class SeoAgent {
 
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash-latest',
+        model: 'gemini-2.0-flash',
         contents: `${SEO_AGENT_PROMPT}\n\nResumen a optimizar:\n${summary}`,
         config: {
           responseMimeType: "application/json",
