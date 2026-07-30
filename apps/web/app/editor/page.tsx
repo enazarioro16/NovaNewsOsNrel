@@ -3,9 +3,11 @@ import { triggerIngestion } from './actions';
 import { auth } from '../../auth';
 import { redirect } from 'next/navigation';
 
+const API_BASE = process.env.NODE_ENV === 'production' ? 'http://api:3001' : 'http://localhost:3001';
+
 async function getEditorialNews() {
   try {
-    const res = await fetch('http://localhost:3001/editorial/news', { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/editorial/news`, { cache: 'no-store' });
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
@@ -23,51 +25,88 @@ export default async function EditorialDashboard() {
   const news = await getEditorialNews();
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
-      <h1>NovaNews - Editorial Dashboard</h1>
-      <form action={triggerIngestion} style={{ marginBottom: '2rem' }}>
-        <button type="submit" style={{ padding: '0.5rem 1rem', background: '#0070f3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Simular Ingesta (Trigger NIP)
-        </button>
-      </form>
+    <div className="min-h-screen bg-[#0f111a] text-[#8f9bb3] font-mono p-6">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="flex justify-between items-center border-b border-[#1f2335] pb-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">NOVA_NEWS // EDITORIAL_HUB</h1>
+            <p className="text-sm mt-1 text-[#565f89]">Sistema de Revisión y Curación (Multi-Agent AI Pipeline)</p>
+          </div>
+          <form action={triggerIngestion}>
+            <button 
+              type="submit" 
+              className="bg-[#2ac3de] hover:bg-[#7dcfff] text-[#1a1b26] font-bold py-2 px-4 rounded text-sm transition-colors"
+            >
+              [+] MANUAL_INGEST
+            </button>
+          </form>
+        </div>
 
-      <h2>Bandeja de Entrada (News Intelligence Pipeline)</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
-            <th>Estado</th>
-            <th>Título (Original -&gt; SEO)</th>
-            <th>Fuente</th>
-            <th>Resumen AI</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          {news.map((item: any) => (
-            <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '0.5rem' }}>
-                <span style={{ 
-                  background: item.pipelineStatus === 'PUBLISHED' ? '#d4edda' : '#fff3cd', 
-                  padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' 
-                }}>
-                  {item.pipelineStatus}
-                </span>
-              </td>
-              <td style={{ padding: '0.5rem' }}>
-                <small style={{ color: '#666' }}>{item.title}</small><br/>
-                <strong>{item.seoTitle || 'N/A'}</strong>
-              </td>
-              <td style={{ padding: '0.5rem' }}>{item.source}</td>
-              <td style={{ padding: '0.5rem', fontSize: '0.9rem', maxWidth: '300px' }}>{item.summary || 'Procesando...'}</td>
-              <td style={{ padding: '0.5rem' }}>
-                {item.pipelineStatus === 'REVIEW_PENDING' && (
-                  <a href={`/editor/${item.id}`} style={{ padding: '0.3rem 0.5rem', background: '#0070f3', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>Auditar</a>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        {/* Data Table */}
+        <div className="bg-[#1a1b26] rounded-lg border border-[#292e42] overflow-hidden shadow-2xl">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-[#1f2335] text-[#a9b1d6] uppercase text-xs">
+              <tr>
+                <th className="px-6 py-4 font-semibold tracking-wider">STATUS</th>
+                <th className="px-6 py-4 font-semibold tracking-wider w-1/3">CONTENT_TITLE</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">SOURCE</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">QUALITY_SCORE</th>
+                <th className="px-6 py-4 font-semibold tracking-wider text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#292e42]">
+              {news.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-[#565f89]">No pending articles in queue.</td>
+                </tr>
+              ) : (
+                news.map((item: any) => (
+                  <tr key={item.id} className="hover:bg-[#1f2335] transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${item.pipelineStatus === 'PUBLISHED' ? 'bg-[#c3e88d]/20 text-[#c3e88d]' : 
+                          item.pipelineStatus === 'REJECTED' ? 'bg-[#f7768e]/20 text-[#f7768e]' : 
+                          'bg-[#e0af68]/20 text-[#e0af68]'}`}>
+                        {item.pipelineStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-white font-medium mb-1 line-clamp-1" title={item.seoTitle || item.title}>
+                        {item.seoTitle || item.title}
+                      </div>
+                      <div className="text-[#565f89] text-xs line-clamp-1">{item.originalUrl}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-[#7dcfff]">
+                      {item.source}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-full bg-[#292e42] rounded-full h-2.5 mr-2 max-w-[100px]">
+                          <div className="bg-[#9ece6a] h-2.5 rounded-full" style={{ width: `${item.qualityScore || 0}%` }}></div>
+                        </div>
+                        <span className="text-xs text-[#9ece6a]">{item.qualityScore || 0}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      {item.pipelineStatus === 'REVIEW_PENDING' ? (
+                        <a href={`/editor/${item.id}`} className="text-[#bb9af7] hover:text-[#d5b4fd] uppercase tracking-wider font-bold">
+                          AUDIT_NOW &rarr;
+                        </a>
+                      ) : (
+                        <a href={`/editor/${item.id}`} className="text-[#565f89] hover:text-white uppercase tracking-wider">
+                          VIEW
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
