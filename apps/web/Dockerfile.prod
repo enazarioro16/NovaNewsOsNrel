@@ -20,6 +20,9 @@ RUN pnpm install --frozen-lockfile
 # Copiar código fuente
 COPY . .
 
+# Garantizar que el directorio public exista para evitar crash de Docker COPY en el stage runner
+RUN mkdir -p apps/web/public
+
 # Variables requeridas en build time para Next.js (pueden ser dummy para build)
 ENV NEXT_TELEMETRY_DISABLED=1
 
