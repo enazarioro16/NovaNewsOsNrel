@@ -12,6 +12,7 @@
     "@google/genai": "^2.14.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
     "@nestjs/schedule": "^6.1.3",
     "@novanews/database": "workspace:*",
     "cron": "^4.4.0",
