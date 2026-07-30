@@ -10,10 +10,11 @@ import { DistributionModule } from './distribution/distribution.module';
 import { ResearchAgent } from './ai/agents/research.agent';
 import { EditorAgent } from './ai/agents/editor.agent';
 import { SeoAgent } from './ai/agents/seo.agent';
+import { IngestionController } from './content/ingestion.controller';
 
 @Module({
   imports: [IntelligenceModule, IdentityModule, DistributionModule],
-  controllers: [EditorialController],
+  controllers: [EditorialController, IngestionController],
   providers: [
     IngestionService, 
     PipelineService, 

@@ -14,7 +14,7 @@ const vector = customType<{ data: number[]; driverData: string }>({
 
 export const newsTable = pgTable('news', {
   id: uuid('id').primaryKey().defaultRandom(),
-  originalUrl: text('original_url'),
+  originalUrl: text('original_url').unique(),
   source: text('source'),
   title: text('title').notNull(),
   content: text('content').notNull(),
