@@ -2,7 +2,7 @@ import { pgTable, text, timestamp, uuid, jsonb, integer, customType } from 'driz
 
 const vector = customType<{ data: number[]; driverData: string }>({
   dataType() {
-    return 'vector(768)';
+    return 'vector';
   },
   toDriver(value: number[]): string {
     return `[${value.join(',')}]`;
