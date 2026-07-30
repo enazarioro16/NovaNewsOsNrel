@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: novanews_prod_db
     volumes:
       - novanews_pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     networks:
       - novanews_internal
     restart: always
