@@ -17,7 +17,14 @@ async function getEditorialNews() {
     return res.json();
   } catch (error) {
     console.error('API Error', error);
-    return [];
+    return [{ 
+      id: 'error-123',
+      pipelineStatus: 'REJECTED', 
+      title: `Error fetching data: ${error instanceof Error ? error.message : String(error)}`, 
+      source: 'System',
+      qualityScore: 0,
+      originalUrl: '#'
+    }];
   }
 }
 
