@@ -21,7 +21,7 @@ export class ResearchAgent {
 
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         contents: `${RESEARCH_AGENT_PROMPT}\n\nTítulo: ${title}\nContenido original: ${content}`,
         config: {
           responseMimeType: "application/json",
