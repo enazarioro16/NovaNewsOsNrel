@@ -46,7 +46,9 @@ services:
     environment:
       - NODE_ENV=production
       - NEXTAUTH_URL=https://novanewsosnrel.com
+      - AUTH_URL=https://novanewsosnrel.com
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-super-secret-key-prod}
+      - AUTH_SECRET=${NEXTAUTH_SECRET:-super-secret-key-prod}
     networks:
       - novanews_internal
     depends_on:
