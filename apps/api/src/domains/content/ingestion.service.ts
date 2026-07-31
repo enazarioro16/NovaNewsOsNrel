@@ -4,6 +4,8 @@ import { SourceManager } from '../intelligence/source.manager';
 import { DeduplicationEngine } from '../intelligence/deduplication.engine';
 import { ScoringEngine } from '../intelligence/scoring.engine';
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 @Injectable()
 export class IngestionService {
   private readonly logger = new Logger(IngestionService.name);
@@ -75,6 +77,12 @@ export class IngestionService {
         qualityScore: score
       });
       ingestedCount++;
+      
+      // Delay to avoid hitting the 15 RPM free tier limit (wait 12 seconds between articles)
+      if (ingestedCount < mockArticles.length) {
+        this.logger.log(`[Throttling] Esperando 12s antes del siguiente artículo...`);
+        await sleep(12000);
+      }
     }
 
     return { ingested: ingestedCount };
@@ -114,6 +122,12 @@ export class IngestionService {
         qualityScore: score
       });
       ingestedCount++;
+      
+      // Delay to avoid hitting the 15 RPM free tier limit (wait 12 seconds between articles)
+      if (ingestedCount < rawArticles.length) {
+        this.logger.log(`[Throttling] Esperando 12s antes del siguiente artículo...`);
+        await sleep(12000);
+      }
     }
     
     this.logger.log(`Batch completado. Insertados: ${ingestedCount}/${rawArticles.length}`);

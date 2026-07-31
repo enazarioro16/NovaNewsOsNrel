@@ -12,10 +12,34 @@ export interface AIProcessingResult {
   semanticEmbedding: number[];
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function executeWithRetry<T>(operation: () => Promise<T>, maxRetries = 3, baseDelay = 10000): Promise<T> {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      const isRateLimit = error?.status === 'RESOURCE_EXHAUSTED' || error?.message?.includes('429') || error?.message?.includes('Quota exceeded');
+      if (isRateLimit) {
+        attempt++;
+        if (attempt >= maxRetries) throw error;
+        // Exponential backoff
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        Logger.warn(`[RateLimit] Hit 429 Quota Exceeded. Retrying in ${delay}ms (Attempt ${attempt}/${maxRetries})...`, 'AIBackoff');
+        await sleep(delay);
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+
 @Injectable()
 export class AIService {
   private readonly logger = new Logger(AIService.name);
-  private readonly ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MOCK_KEY', httpOptions: { apiVersion: 'v1' } });
+  private readonly ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MOCK_KEY', apiVersion: 'v1' } as any);
 
   constructor(
     private readonly researchAgent: ResearchAgent,
@@ -41,17 +65,21 @@ export class AIService {
     try {
       // 1. Research Agent: Extrae hechos y entidades
       this.logger.log(`[Step 1] Invocando ResearchAgent...`);
-      const researchData = await this.researchAgent.execute(this.ai, title, content);
+      const researchData = await executeWithRetry(() => this.researchAgent.execute(this.ai, title, content));
+
+      await sleep(2500); // 2.5s delay to avoid bursting the API
 
       // 2. Editor Agent: Reescribe el artículo basándose en los hechos (Bias-free)
       this.logger.log(`[Step 2] Invocando EditorAgent...`);
-      const editorData = await this.editorAgent.execute(this.ai, title, researchData);
+      const editorData = await executeWithRetry(() => this.editorAgent.execute(this.ai, title, researchData));
+
+      await sleep(2500);
 
       // 3. SEO Agent: Genera metadatos a partir del resumen estructurado
       this.logger.log(`[Step 3] Invocando SeoAgent...`);
       let seoData;
       try {
-        seoData = await this.seoAgent.execute(this.ai, editorData.summary);
+        seoData = await executeWithRetry(() => this.seoAgent.execute(this.ai, editorData.summary));
       } catch (seoError) {
         this.logger.warn(`[Step 3] SeoAgent falló, usando fallback. Error: ${seoError}`);
         seoData = {
@@ -63,12 +91,13 @@ export class AIService {
 
       // 4. Embedding Generation (text-embedding-004)
       this.logger.log(`[Step 4] Generando Vector Semántico...`);
+      await sleep(2500);
       let embedding: number[] = new Array(768).fill(0.01);
       try {
-        const embedResponse = await this.ai.models.embedContent({
+        const embedResponse = await executeWithRetry(() => this.ai.models.embedContent({
           model: 'text-embedding-004',
           contents: editorData.summary,
-        });
+        }));
         if (embedResponse.embeddings && embedResponse.embeddings.length > 0) {
           embedding = embedResponse.embeddings[0].values || embedding;
         }
