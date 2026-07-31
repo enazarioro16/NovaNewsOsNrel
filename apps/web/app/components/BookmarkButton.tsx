@@ -17,18 +17,13 @@ export default function BookmarkButton({ newsId, initialIsBookmarked }: { newsId
           toggleBookmark(newsId); // Server Action en background
         });
       }}
-      style={{
-        padding: '0.5rem 1rem',
-        background: optimisticIsBookmarked ? '#fff' : '#0070f3',
-        color: optimisticIsBookmarked ? '#0070f3' : '#fff',
-        border: '1px solid #0070f3',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        transition: 'all 0.2s ease'
-      }}
+      className={`text-xs font-bold uppercase py-2 px-4 rounded transition-all duration-200 border flex items-center gap-2 ${
+        optimisticIsBookmarked 
+          ? 'bg-[#bb9af7]/20 text-[#bb9af7] border-[#bb9af7] shadow-[0_0_10px_rgba(187,154,247,0.3)]' 
+          : 'bg-[#1f2335] text-[#565f89] border-[#292e42] hover:border-[#bb9af7] hover:text-[#bb9af7]'
+      }`}
     >
-      {optimisticIsBookmarked ? '★ Guardado' : '☆ Guardar'}
+      {optimisticIsBookmarked ? '★ Bookmarked' : '☆ Bookmark'}
     </button>
   );
 }
