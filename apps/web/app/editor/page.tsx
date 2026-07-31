@@ -1,7 +1,7 @@
 import React from 'react';
-import { triggerIngestion } from './actions';
 import { auth } from '../../auth';
 import { redirect } from 'next/navigation';
+import { ManualBatchIngestButton } from './components/ManualBatchIngestButton';
 
 import { db, newsTable } from '@novanews/database';
 import { desc, eq } from 'drizzle-orm';
@@ -34,17 +34,10 @@ export default async function EditorialDashboard() {
             <p className="text-sm mt-1 text-[#565f89]">Sistema de Revisión y Curación (Multi-Agent AI Pipeline)</p>
           </div>
           <div className="flex gap-4">
-            <a href="/editor/new" className="bg-[#bb9af7] hover:bg-[#d5b4fd] text-[#1a1b26] font-bold py-2 px-4 rounded text-sm transition-colors flex items-center">
+            <a href="/editor/new" className="bg-[#bb9af7] hover:bg-[#d5b4fd] text-[#1a1b26] font-bold py-2 px-4 rounded text-sm transition-colors flex items-center h-full">
               [+] SINGLE_URL_OVERRIDE
             </a>
-            <form action={triggerIngestion}>
-              <button 
-                type="submit" 
-                className="bg-[#2ac3de] hover:bg-[#7dcfff] text-[#1a1b26] font-bold py-2 px-4 rounded text-sm transition-colors h-full"
-              >
-                [+] MANUAL_BATCH_INGEST
-              </button>
-            </form>
+            <ManualBatchIngestButton />
           </div>
         </div>
 
