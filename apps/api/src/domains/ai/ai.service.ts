@@ -3,6 +3,8 @@ import { GoogleGenAI } from '@google/genai';
 import { ResearchAgent } from './agents/research.agent';
 import { EditorAgent } from './agents/editor.agent';
 import { SeoAgent } from './agents/seo.agent';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Histogram } from 'prom-client';
 
 export interface AIProcessingResult {
   summary: string;
@@ -44,10 +46,12 @@ export class AIService {
   constructor(
     private readonly researchAgent: ResearchAgent,
     private readonly editorAgent: EditorAgent,
-    private readonly seoAgent: SeoAgent
+    private readonly seoAgent: SeoAgent,
+    @InjectMetric('ai_generation_duration_seconds') private readonly aiLatencyHistogram: Histogram<string>
   ) {}
 
   async processArticle(title: string, content: string): Promise<AIProcessingResult> {
+    const endTimer = this.aiLatencyHistogram.startTimer();
     this.logger.log(`[Multi-Agent Pipeline] Iniciando procesamiento para: ${title}`);
     
     // Fallback/Mock para dev local sin API Key
@@ -118,6 +122,8 @@ export class AIService {
     } catch (error) {
       this.logger.error(`[Multi-Agent Pipeline] Fallo Crítico: ${error}`);
       throw error;
+    } finally {
+      endTimer();
     }
   }
 }

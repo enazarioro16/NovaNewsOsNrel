@@ -4,6 +4,8 @@ import { eq } from 'drizzle-orm';
 import { GoogleGenAI } from '@google/genai';
 import { ShortVideoScript } from './interfaces';
 import { z } from 'zod';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 const ScriptSchema = z.object({
   hook: z.string(),
@@ -16,6 +18,10 @@ const ScriptSchema = z.object({
 export class DistributionService {
   private readonly logger = new Logger(DistributionService.name);
   private readonly ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MOCK_KEY' });
+
+  constructor(
+    @InjectMetric('webhook_distribution_errors') private readonly webhookErrorCounter: Counter<string>
+  ) {}
 
   async generateAndSaveScript(newsId: string): Promise<void> {
     this.logger.log(`[Distribution] Iniciando generación de guion para noticia: ${newsId}`);
@@ -94,11 +100,13 @@ export class DistributionService {
 
       if (!response.ok) {
         this.logger.error(`[Distribution] Falló el webhook n8n: ${response.status}`);
+        this.webhookErrorCounter.inc();
       } else {
         this.logger.log(`[Distribution] Webhook de distribución entregado exitosamente.`);
       }
     } catch (error) {
       this.logger.error(`[Distribution] Error crítico al disparar webhook: ${error}`);
+      this.webhookErrorCounter.inc();
     }
   }
 }

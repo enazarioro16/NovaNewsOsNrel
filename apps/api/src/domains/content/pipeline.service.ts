@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AIService } from '../ai/ai.service';
 import { db, newsTable } from '@novanews/database';
 import { eq } from 'drizzle-orm';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 export interface RawArticle {
   originalUrl: string;
@@ -15,13 +17,17 @@ export interface RawArticle {
 export class PipelineService {
   private readonly logger = new Logger(PipelineService.name);
 
-  constructor(private readonly aiService: AIService) {}
+  constructor(
+    private readonly aiService: AIService,
+    @InjectMetric('articles_ingested_total') private readonly ingestedCounter: Counter<string>
+  ) {}
 
   /**
    * News Intelligence Pipeline Orchestrator
    */
   async startPipeline(raw: RawArticle) {
     this.logger.log(`[PIPELINE START] Procesando: ${raw.title}`);
+    this.ingestedCounter.inc();
 
     let featuredImage: string | null = null;
     try {

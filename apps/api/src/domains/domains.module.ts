@@ -11,6 +11,7 @@ import { ResearchAgent } from './ai/agents/research.agent';
 import { EditorAgent } from './ai/agents/editor.agent';
 import { SeoAgent } from './ai/agents/seo.agent';
 import { IngestionController } from './content/ingestion.controller';
+import { domainMetricProviders } from './metrics.providers';
 
 @Module({
   imports: [IntelligenceModule, IdentityModule, DistributionModule],
@@ -22,7 +23,8 @@ import { IngestionController } from './content/ingestion.controller';
     AutomationService,
     ResearchAgent,
     EditorAgent,
-    SeoAgent
+    SeoAgent,
+    ...domainMetricProviders
   ],
 })
 export class NovaNewsDomainsModule {}

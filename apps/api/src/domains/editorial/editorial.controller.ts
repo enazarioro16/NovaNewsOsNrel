@@ -4,13 +4,16 @@ import { DistributionService } from '../distribution/distribution.service';
 import { db, newsTable } from '@novanews/database';
 import { eq, desc } from 'drizzle-orm';
 import { JwtAuthGuard } from '../identity/identity.guard';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 @UseGuards(JwtAuthGuard)
 @Controller('editorial')
 export class EditorialController {
   constructor(
     private readonly ingestionService: IngestionService,
-    private readonly distributionService: DistributionService
+    private readonly distributionService: DistributionService,
+    @InjectMetric('editorial_approvals_total') private readonly approvalCounter: Counter<string>
   ) {}
 
   // Trigger manual del pipeline para testing
@@ -32,6 +35,8 @@ export class EditorialController {
       publishedAt: new Date(),
     }).where(eq(newsTable.id, id));
     
+    this.approvalCounter.inc();
+
     // Disparar motor de distribución automáticamente en el background
     this.distributionService.generateAndSaveScript(id).catch(err => {
       console.error(`Error en distribucion post-publish:`, err);
@@ -67,6 +72,8 @@ export class EditorialController {
       updatedAt: new Date(),
     }).where(eq(newsTable.id, id));
     
+    this.approvalCounter.inc();
+
     // Disparar motor de distribución
     this.distributionService.generateAndSaveScript(id).catch(err => {
       console.error(`Error en distribucion post-publish:`, err);
