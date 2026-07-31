@@ -3,17 +3,17 @@ import { approveAndPublishNews, rejectNews } from '../actions';
 import { auth } from '../../../auth';
 import { redirect } from 'next/navigation';
 
-const API_BASE = process.env.NODE_ENV === 'production' ? 'http://api:3001' : 'http://localhost:3001';
+import { db, newsTable } from '@novanews/database';
+import { eq } from 'drizzle-orm';
 
 async function getNewsById(id: string) {
-  const res = await fetch(`${API_BASE}/editorial/news/${id}`, { 
-    cache: 'no-store',
-    headers: {
-      'Authorization': 'Bearer internal-server-rsc-token-12345'
-    }
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const [article] = await db.select().from(newsTable).where(eq(newsTable.id, id));
+    return article || null;
+  } catch (error) {
+    console.error('Database Error', error);
+    return null;
+  }
 }
 
 export default async function NewsDetailView({ params }: { params: { id: string } }) {

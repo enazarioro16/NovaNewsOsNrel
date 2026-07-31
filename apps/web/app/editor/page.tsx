@@ -3,28 +3,15 @@ import { triggerIngestion } from './actions';
 import { auth } from '../../auth';
 import { redirect } from 'next/navigation';
 
-const API_BASE = process.env.NODE_ENV === 'production' ? 'http://api:3001' : 'http://localhost:3001';
+import { db, newsTable } from '@novanews/database';
+import { desc, eq } from 'drizzle-orm';
 
 async function getEditorialNews() {
   try {
-    const res = await fetch(`${API_BASE}/editorial/news`, { 
-      cache: 'no-store',
-      headers: {
-        'Authorization': 'Bearer internal-server-rsc-token-12345'
-      }
-    });
-    if (!res.ok) return [];
-    return res.json();
+    return await db.select().from(newsTable).orderBy(desc(newsTable.createdAt));
   } catch (error) {
-    console.error('API Error', error);
-    return [{ 
-      id: 'error-123',
-      pipelineStatus: 'REJECTED', 
-      title: `Error fetching data: ${error instanceof Error ? error.message : String(error)}`, 
-      source: 'System',
-      qualityScore: 0,
-      originalUrl: '#'
-    }];
+    console.error('Database Error', error);
+    return [];
   }
 }
 
