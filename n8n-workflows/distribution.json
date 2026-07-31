@@ -1,0 +1,91 @@
+{
+  "name": "NovaNews Omni-Channel Distribution",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "distribution",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook Inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🚨 NUEVA NOTICIA 🚨\n\n{{ $json.body.socialScript.hook }}\n\n{{ $json.body.title }}\n\nLee más aquí: {{ $json.body.url }}\n\n{{ $json.body.socialScript.hashtags.join(' ') }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        500,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.body.socialScript.hook }}\n\n{{ $json.body.socialScript.callToAction }}\n\nLink: {{ $json.body.url }}",
+        "additionalFields": {}
+      },
+      "name": "Twitter",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 1,
+      "position": [
+        500,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "tableName": "pending_newsletter",
+        "columns": "newsId,title,url,summary,status",
+        "values": "={{ $json.body.newsId }},{{ $json.body.title }},{{ $json.body.url }},{{ $json.body.summary }},pending"
+      },
+      "name": "Postgres (Newsletter DB)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        500,
+        750
+      ],
+      "notesInFlow": true,
+      "notes": "Guarda en DB para el Cron del Viernes"
+    }
+  ],
+  "connections": {
+    "Webhook Inbound": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Twitter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Postgres (Newsletter DB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "f76c5b08-6a3f-4e0a-9d32-2d6b38c2196f"
+}
