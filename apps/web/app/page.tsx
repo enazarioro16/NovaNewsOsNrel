@@ -1,9 +1,21 @@
 import { auth } from '../auth';
 import { db, newsTable, userBookmarks } from '@novanews/database';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import BookmarkButton from './components/BookmarkButton';
 import Link from 'next/link';
 import Image from 'next/image';
+
+function calculateCentroid(vectors: number[][]): number[] {
+  if (vectors.length === 0) return [];
+  const dim = vectors[0].length;
+  const centroid = new Array(dim).fill(0);
+  for (const v of vectors) {
+    for (let i = 0; i < dim; i++) {
+      centroid[i] += v[i];
+    }
+  }
+  return centroid.map(val => val / vectors.length);
+}
 
 export const metadata = {
   title: 'NovaNews // Premium Tech Feed',
@@ -13,17 +25,44 @@ export const metadata = {
 export default async function PublicFrontpage() {
   const session = await auth();
 
-  // SSR Puro: Fetching super rápido desde Drizzle
-  // RESTRICCIÓN VITAL: Solo noticias 'PUBLISHED'
-  const feed = await db.select().from(newsTable)
-    .where(eq(newsTable.pipelineStatus, 'PUBLISHED'))
-    .orderBy(desc(newsTable.publishedAt));
-
-  // Opcional: Obtener bookmarks si el usuario está autenticado
   let bookmarkedNewsIds = new Set<string>();
+  let isPersonalized = false;
+  let feed = [];
+
   if (session?.user?.id) {
-    const myBookmarks = await db.select().from(userBookmarks).where(eq(userBookmarks.userId, session.user.id));
+    const myBookmarks = await db.select({
+      newsId: userBookmarks.newsId,
+      embedding: newsTable.semanticEmbedding
+    })
+    .from(userBookmarks)
+    .innerJoin(newsTable, eq(userBookmarks.newsId, newsTable.id))
+    .where(eq(userBookmarks.userId, session.user.id));
+
     bookmarkedNewsIds = new Set(myBookmarks.map(b => b.newsId));
+
+    const validEmbeddings = myBookmarks
+      .map(b => b.embedding)
+      .filter((e): e is number[] => Array.isArray(e) && e.length > 0);
+
+    if (validEmbeddings.length > 0) {
+      const centroid = calculateCentroid(validEmbeddings);
+      const vectorString = `[${centroid.join(',')}]`;
+      
+      feed = await db.select().from(newsTable)
+        .where(eq(newsTable.pipelineStatus, 'PUBLISHED'))
+        .orderBy(sql`${newsTable.semanticEmbedding} <=> ${vectorString}::vector`)
+        .limit(21);
+      
+      isPersonalized = true;
+    }
+  }
+
+  // Fallback a cronológico si no hay sesión o no hay bookmarks suficientes
+  if (!isPersonalized) {
+    feed = await db.select().from(newsTable)
+      .where(eq(newsTable.pipelineStatus, 'PUBLISHED'))
+      .orderBy(desc(newsTable.publishedAt))
+      .limit(21);
   }
 
   return (
@@ -36,7 +75,13 @@ export default async function PublicFrontpage() {
             <h1 className="text-3xl font-bold text-white tracking-tight uppercase">
               NOVA_NEWS <span className="text-[#7dcfff]">//</span> PUBLIC_FEED
             </h1>
-            <p className="text-sm mt-2 text-[#565f89]">Inteligencia Artificial curando el ruido tecnológico mundial.</p>
+            <p className="text-sm mt-2 text-[#565f89]">
+              {isPersonalized ? (
+                <span className="text-[#9ece6a] font-bold">● Vectorial_Algorithm_Active: For_You</span>
+              ) : (
+                "Inteligencia Artificial curando el ruido tecnológico mundial."
+              )}
+            </p>
           </div>
           <div className="flex gap-4 text-sm font-bold">
             {session ? (
