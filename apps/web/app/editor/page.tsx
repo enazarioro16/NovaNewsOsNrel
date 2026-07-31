@@ -33,14 +33,19 @@ export default async function EditorialDashboard() {
             <h1 className="text-2xl font-bold text-white tracking-tight">NOVA_NEWS // EDITORIAL_HUB</h1>
             <p className="text-sm mt-1 text-[#565f89]">Sistema de Revisión y Curación (Multi-Agent AI Pipeline)</p>
           </div>
-          <form action={triggerIngestion}>
-            <button 
-              type="submit" 
-              className="bg-[#2ac3de] hover:bg-[#7dcfff] text-[#1a1b26] font-bold py-2 px-4 rounded text-sm transition-colors"
-            >
-              [+] MANUAL_INGEST
-            </button>
-          </form>
+          <div className="flex gap-4">
+            <a href="/editor/new" className="bg-[#bb9af7] hover:bg-[#d5b4fd] text-[#1a1b26] font-bold py-2 px-4 rounded text-sm transition-colors flex items-center">
+              [+] SINGLE_URL_OVERRIDE
+            </a>
+            <form action={triggerIngestion}>
+              <button 
+                type="submit" 
+                className="bg-[#2ac3de] hover:bg-[#7dcfff] text-[#1a1b26] font-bold py-2 px-4 rounded text-sm transition-colors h-full"
+              >
+                [+] MANUAL_BATCH_INGEST
+              </button>
+            </form>
+          </div>
         </div>
 
         {/* Data Table */}

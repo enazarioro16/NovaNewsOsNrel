@@ -53,3 +53,29 @@ export async function triggerIngestion() {
   });
   revalidatePath('/editor');
 }
+
+export async function ingestSingleUrl(formData: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+
+  const url = formData.get('url');
+  
+  // NOTE: This assumes the NestJS API has an endpoint for single URL ingestion.
+  // We will call the standard webhook ingest with a mock payload for this single URL.
+  const API_BASE = process.env.NODE_ENV === 'production' ? 'http://api:3001' : 'http://localhost:3001';
+  await fetch(`${API_BASE}/content/webhook/ingest`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer webhook-secret-token-2026' 
+    },
+    body: JSON.stringify([{
+      title: 'Manual Extraction Override',
+      content: 'Fetching content dynamically...',
+      originalUrl: url
+    }])
+  });
+  
+  revalidatePath('/editor');
+  redirect('/editor');
+}
