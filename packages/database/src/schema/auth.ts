@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, primaryKey, integer, jsonb, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, primaryKey, integer, jsonb, uuid, boolean } from 'drizzle-orm/pg-core';
 import type { AdapterAccount } from '@auth/core/adapters';
 import { newsTable } from './news';
 
@@ -10,6 +10,10 @@ export const users = pgTable('user', {
   image: text('image'),
   role: text('role').default('USER'), // B2C role
   preferences: jsonb('preferences').$type<string[]>(), // User topics
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  stripePriceId: text('stripe_price_id'),
+  isPro: boolean('is_pro').default(false),
 });
 
 export const userBookmarks = pgTable('user_bookmark', {

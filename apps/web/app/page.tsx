@@ -92,6 +92,9 @@ export default async function PublicFrontpage() {
                 <Link href="/editor" className="text-[#bb9af7] hover:text-white transition-colors uppercase tracking-wider">
                   [ Editor_Hub ]
                 </Link>
+                <Link href="/pricing" className="text-[#e0af68] hover:text-white transition-colors uppercase tracking-wider">
+                  [ Upgrade_PRO ]
+                </Link>
                 <a href="/api/auth/signout" className="text-[#f7768e] hover:text-white transition-colors uppercase tracking-wider">
                   [ Disconnect ]
                 </a>

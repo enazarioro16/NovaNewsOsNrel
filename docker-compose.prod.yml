@@ -31,6 +31,8 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgres://novanews:novanews_prod_password@database:5432/novanews_prod_db
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - PORT=3001
     networks:
       - novanews_internal
@@ -54,7 +56,10 @@ services:
       - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
       - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
       - DATABASE_URL=postgres://novanews:novanews_prod_password@database:5432/novanews_prod_db
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}
       - NEXT_PUBLIC_API_URL=http://api:3001
+      - NEXT_PUBLIC_APP_URL=https://novanewsosnrel.com
     networks:
       - novanews_internal
     depends_on:
