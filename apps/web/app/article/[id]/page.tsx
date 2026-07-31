@@ -4,7 +4,11 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function generateMetadata({ params }: { params: { id: string } }) {
+  if (!uuidRegex.test(params.id)) return { title: 'Not Found' };
+
   const [article] = await db.select().from(newsTable).where(eq(newsTable.id, params.id));
   if (!article) return { title: 'Not Found' };
   
@@ -15,6 +19,10 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 }
 
 export default async function ArticlePage({ params }: { params: { id: string } }) {
+  if (!uuidRegex.test(params.id)) {
+    notFound();
+  }
+
   // Solo permitir lectura si el pipelineStatus es PUBLISHED
   const [article] = await db.select().from(newsTable).where(
     and(
