@@ -1,4 +1,5 @@
 {
+  "id": "Wrk123xyz456",
   "name": "Social Distribution Bot (TICKET-013)",
   "nodes": [
     {
@@ -60,7 +61,7 @@
       ],
       "credentials": {
         "telegramApi": {
-          "id": "",
+          "id": "tel123abc456def7",
           "name": "Telegram Bot"
         }
       }
