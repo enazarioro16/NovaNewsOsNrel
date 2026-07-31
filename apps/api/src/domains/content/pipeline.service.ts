@@ -23,6 +23,18 @@ export class PipelineService {
   async startPipeline(raw: RawArticle) {
     this.logger.log(`[PIPELINE START] Procesando: ${raw.title}`);
 
+    let featuredImage: string | null = null;
+    try {
+      this.logger.log(`[PIPELINE] Extrayendo imagen (og:image) de ${raw.originalUrl}`);
+      const res = await fetch(raw.originalUrl, { signal: AbortSignal.timeout(5000) });
+      const html = await res.text();
+      const match = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) || 
+                    html.match(/<meta[^>]*content="([^"]+)"[^>]*property="og:image"/i);
+      if (match && match[1]) featuredImage = match[1];
+    } catch (err) {
+      this.logger.warn(`[PIPELINE] No se pudo extraer la imagen: ${err}`);
+    }
+
     // 1. Ingesta & Normalización (Guardar crudo)
     const [inserted] = await db.insert(newsTable).values({
       originalUrl: raw.originalUrl,
@@ -30,6 +42,7 @@ export class PipelineService {
       title: raw.title,
       content: raw.content,
       qualityScore: raw.qualityScore,
+      featuredImage: featuredImage,
       pipelineStatus: 'INGESTED'
     }).returning();
 

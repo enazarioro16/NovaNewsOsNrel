@@ -21,6 +21,7 @@ export const newsTable = pgTable('news', {
   summary: text('summary'),
   seoTitle: text('seo_title'),
   seoDescription: text('seo_description'),
+  featuredImage: text('featured_image'),
   tags: jsonb('tags').$type<string[]>(),
   semanticEmbedding: vector('semantic_embedding'),
   qualityScore: integer('quality_score').default(0),

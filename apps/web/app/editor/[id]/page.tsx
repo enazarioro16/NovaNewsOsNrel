@@ -2,6 +2,7 @@ import React from 'react';
 import { approveAndPublishNews, rejectNews } from '../actions';
 import { auth } from '../../../auth';
 import { redirect } from 'next/navigation';
+import Image from 'next/image';
 
 import { db, newsTable } from '@novanews/database';
 import { eq } from 'drizzle-orm';
@@ -70,6 +71,21 @@ export default async function NewsDetailView({ params }: { params: { id: string 
               <p className="text-xs text-[#565f89] mb-1">ORIGINAL_TITLE</p>
               <h2 className="text-lg text-white font-semibold">{news.title}</h2>
             </div>
+
+            {news.featuredImage && (
+              <div className="mb-4">
+                <p className="text-xs text-[#565f89] mb-1">FEATURED_IMAGE (og:image)</p>
+                <div className="relative w-full h-32 rounded overflow-hidden border border-[#292e42]">
+                  <Image 
+                    src={news.featuredImage} 
+                    alt="Thumbnail" 
+                    fill 
+                    className="object-cover" 
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
+              </div>
+            )}
             
             <div>
               <p className="text-xs text-[#565f89] mb-2">RAW_CONTENT_PAYLOAD</p>

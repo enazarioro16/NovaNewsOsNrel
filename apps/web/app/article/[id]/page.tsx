@@ -2,6 +2,7 @@ import { db, newsTable } from '@novanews/database';
 import { eq, and } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const [article] = await db.select().from(newsTable).where(eq(newsTable.id, params.id));
@@ -59,6 +60,19 @@ export default async function ArticlePage({ params }: { params: { id: string } }
               ))}
             </div>
           </header>
+
+          {article.featuredImage && (
+            <div className="relative w-full h-64 sm:h-96 mb-10 rounded-lg overflow-hidden border border-[#292e42] shadow-lg">
+              <Image 
+                src={article.featuredImage} 
+                alt={article.seoTitle || article.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 896px"
+                priority
+              />
+            </div>
+          )}
 
           <div className="prose prose-invert prose-p:text-[#a9b1d6] prose-p:leading-relaxed prose-p:text-lg max-w-none mb-12">
             <p className="font-medium text-[#c0caf5] text-xl border-l-4 border-[#7dcfff] pl-6 italic mb-8">

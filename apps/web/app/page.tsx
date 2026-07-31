@@ -3,6 +3,7 @@ import { db, newsTable, userBookmarks } from '@novanews/database';
 import { eq, desc } from 'drizzle-orm';
 import BookmarkButton from './components/BookmarkButton';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const metadata = {
   title: 'NovaNews // Premium Tech Feed',
@@ -72,6 +73,17 @@ export default async function PublicFrontpage() {
                   key={news.id} 
                   className="bg-[#1a1b26] border border-[#292e42] rounded-lg overflow-hidden flex flex-col hover:border-[#7dcfff] transition-all hover:shadow-[0_0_15px_rgba(125,207,255,0.1)] group relative"
                 >
+                  {news.featuredImage && (
+                    <div className="relative w-full h-48 border-b border-[#292e42] overflow-hidden">
+                      <Image 
+                        src={news.featuredImage} 
+                        alt={news.seoTitle || news.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </div>
+                  )}
                   <div className="p-6 flex-grow flex flex-col">
                     <div className="flex justify-between items-start mb-4">
                       <div className="text-xs text-[#565f89] font-bold">
