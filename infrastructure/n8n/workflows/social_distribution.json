@@ -44,7 +44,7 @@
     },
     {
       "parameters": {
-        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "chatId": "5401879954",
         "text": "={{$json.telegram_message}}",
         "additionalFields": {
           "parse_mode": "MarkdownV2"
@@ -60,7 +60,7 @@
       ],
       "credentials": {
         "telegramApi": {
-          "id": "YOUR_TELEGRAM_CREDS_ID",
+          "id": "",
           "name": "Telegram Bot"
         }
       }
