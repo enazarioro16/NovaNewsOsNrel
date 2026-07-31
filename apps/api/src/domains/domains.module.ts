@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EditorialController } from './editorial/editorial.controller';
 import { IngestionService } from './content/ingestion.service';
 import { PipelineService } from './content/pipeline.service';
+import { TTSService } from './content/tts.service';
 import { AIService } from './ai/ai.service';
 import { IntelligenceModule } from './intelligence/intelligence.module';
 import { IdentityModule } from './identity/identity.module';
@@ -20,6 +21,7 @@ import { domainMetricProviders } from './metrics.providers';
   providers: [
     IngestionService, 
     PipelineService, 
+    TTSService,
     AIService, 
     AutomationService,
     ResearchAgent,

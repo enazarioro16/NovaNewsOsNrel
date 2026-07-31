@@ -1,4 +1,5 @@
-import { db, newsTable } from '@novanews/database';
+import { db, newsTable, users } from '@novanews/database';
+import { auth } from '../../../auth';
 import { eq, and } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -35,6 +36,13 @@ export default async function ArticlePage({ params }: { params: { id: string } }
     notFound();
   }
 
+  const session = await auth();
+  let isPro = false;
+  if (session?.user?.id) {
+    const [user] = await db.select().from(users).where(eq(users.id, session.user.id));
+    isPro = !!user?.isPro;
+  }
+
   return (
     <div className="min-h-screen bg-[#0f111a] text-[#8f9bb3] font-sans p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
@@ -68,6 +76,39 @@ export default async function ArticlePage({ params }: { params: { id: string } }
               ))}
             </div>
           </header>
+
+          {/* Audio Player (TTS) */}
+          {article.audioUrl && (
+            <div className="mb-10 bg-[#1f2335] p-6 rounded-lg border border-[#3b4261] shadow-inner flex items-center justify-between">
+              <div className="flex-1 mr-6">
+                <h3 className="text-[#9ece6a] font-bold text-sm tracking-widest uppercase mb-2 flex items-center gap-2">
+                  <span>▶</span> AI_AUDIO_BRIEFING
+                </h3>
+                <p className="text-xs text-[#565f89]">Escucha la síntesis vocal curada de este artículo.</p>
+              </div>
+              
+              <div className="flex-1">
+                {isPro ? (
+                  <audio 
+                    controls 
+                    src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${article.audioUrl}`}
+                    className="w-full h-10 rounded outline-none"
+                  >
+                    Tu navegador no soporta el elemento de audio.
+                  </audio>
+                ) : (
+                  <div className="bg-[#1a1b26] p-3 rounded flex items-center justify-between border border-[#f7768e]/30">
+                    <span className="text-[#f7768e] text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                      <span>🔒</span> CONTENIDO_BLOQUEADO
+                    </span>
+                    <Link href="/pricing" className="bg-[#bb9af7] hover:bg-[#d5b4fd] text-[#1a1b26] text-xs font-bold px-3 py-1 rounded uppercase tracking-wider transition-colors">
+                      UPGRADE_PRO
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {article.featuredImage && (
             <div className="relative w-full h-64 sm:h-96 mb-10 rounded-lg overflow-hidden border border-[#292e42] shadow-lg">

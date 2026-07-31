@@ -34,6 +34,8 @@ services:
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - PORT=3001
+    volumes:
+      - novanews_audio_data:/app/public/audio
     networks:
       - novanews_internal
     depends_on:
@@ -141,3 +143,4 @@ volumes:
   novanews_caddy_config:
   novanews_prometheus_data:
   novanews_grafana_data:
+  novanews_audio_data:

@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Body, Param, Put, UseGuards } from '@nestjs/common';
 import { IngestionService } from '../content/ingestion.service';
 import { DistributionService } from '../distribution/distribution.service';
+import { TTSService } from '../content/tts.service';
 import { db, newsTable } from '@novanews/database';
 import { eq, desc } from 'drizzle-orm';
 import { JwtAuthGuard } from '../identity/identity.guard';
@@ -13,6 +14,7 @@ export class EditorialController {
   constructor(
     private readonly ingestionService: IngestionService,
     private readonly distributionService: DistributionService,
+    private readonly ttsService: TTSService,
     @InjectMetric('editorial_approvals_total') private readonly approvalCounter: Counter<string>
   ) {}
 
@@ -41,6 +43,13 @@ export class EditorialController {
     this.distributionService.generateAndSaveScript(id).catch(err => {
       console.error(`Error en distribucion post-publish:`, err);
     });
+
+    const published = await this.getNewsById(id);
+    if (published?.summary) {
+      this.ttsService.generateAudioForArticle(id, published.summary).catch(err => {
+        console.error(`Error en TTS post-publish:`, err);
+      });
+    }
 
     return { success: true };
   }
@@ -78,6 +87,12 @@ export class EditorialController {
     this.distributionService.generateAndSaveScript(id).catch(err => {
       console.error(`Error en distribucion post-publish:`, err);
     });
+
+    if (data.summary) {
+      this.ttsService.generateAudioForArticle(id, data.summary).catch(err => {
+        console.error(`Error en TTS post-publish:`, err);
+      });
+    }
 
     return { success: true };
   }
