@@ -3,6 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import { ResearchAgent } from './agents/research.agent';
 import { EditorAgent } from './agents/editor.agent';
 import { SeoAgent } from './agents/seo.agent';
+import { FactCheckerAgent } from './agents/fact-checker.agent';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { Histogram } from 'prom-client';
 
@@ -12,6 +13,7 @@ export interface AIProcessingResult {
   seoDescription: string;
   tags: string[];
   semanticEmbedding: number[];
+  factCheckScore: number;
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -47,6 +49,7 @@ export class AIService {
     private readonly researchAgent: ResearchAgent,
     private readonly editorAgent: EditorAgent,
     private readonly seoAgent: SeoAgent,
+    private readonly factCheckerAgent: FactCheckerAgent,
     @InjectMetric('ai_generation_duration_seconds') private readonly aiLatencyHistogram: Histogram<string>
   ) {}
 
@@ -62,7 +65,8 @@ export class AIService {
         seoTitle: `${title} | NovaNews`,
         seoDescription: `Descubre todo sobre ${title} en NovaNews. Cobertura completa y verificada.`,
         tags: ['technology', 'news', 'ai-curated'],
-        semanticEmbedding: new Array(768).fill(0.01)
+        semanticEmbedding: new Array(768).fill(0.01),
+        factCheckScore: 85
       };
     }
 
@@ -109,6 +113,18 @@ export class AIService {
         this.logger.warn(`[Step 4] Embedding falló, usando vector vacío. Error: ${embedError}`);
       }
 
+      // 5. Fact Checking Agent
+      this.logger.log(`[Step 5] Invocando FactCheckerAgent...`);
+      await sleep(2500);
+      let factCheckScore = 50;
+      try {
+        const factData = await executeWithRetry(() => this.factCheckerAgent.execute(this.ai, title, editorData.summary));
+        factCheckScore = factData.score;
+        this.logger.log(`[Step 5] FactCheck Score: ${factCheckScore} - Reasoning: ${factData.reasoning}`);
+      } catch (factError) {
+        this.logger.warn(`[Step 5] FactCheckerAgent falló, asignando score default. Error: ${factError}`);
+      }
+
       this.logger.log(`[Multi-Agent Pipeline] Procesamiento exitoso.`);
       
       return {
@@ -116,7 +132,8 @@ export class AIService {
         seoTitle: seoData.seoTitle,
         seoDescription: seoData.seoDescription,
         tags: seoData.tags,
-        semanticEmbedding: embedding
+        semanticEmbedding: embedding,
+        factCheckScore: factCheckScore
       };
 
     } catch (error) {

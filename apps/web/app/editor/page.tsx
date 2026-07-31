@@ -68,6 +68,11 @@ export default async function EditorialDashboard() {
                           'bg-[#e0af68]/20 text-[#e0af68]'}`}>
                         {item.pipelineStatus}
                       </span>
+                      {item.factCheckScore !== null && item.factCheckScore < 80 && (
+                        <div className="mt-2 text-[10px] text-[#f7768e] bg-[#f7768e]/10 px-2 py-1 rounded inline-flex items-center gap-1 font-bold border border-[#f7768e]/30">
+                          <span>⚠</span> AI_HALLUCINATION_RISK ({item.factCheckScore}/100)
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-white font-medium mb-1 line-clamp-1" title={item.seoTitle || item.title}>

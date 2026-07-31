@@ -64,6 +64,7 @@ export class PipelineService {
       seoDescription: aiResult.seoDescription,
       tags: aiResult.tags,
       semanticEmbedding: aiResult.semanticEmbedding,
+      factCheckScore: aiResult.factCheckScore,
       pipelineStatus: 'REVIEW_PENDING'
     }).where(eq(newsTable.id, inserted.id));
 

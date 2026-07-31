@@ -49,6 +49,11 @@ export default async function NewsDetailView({ params }: { params: { id: string 
           <div className="bg-[#1f2335] px-4 py-2 rounded border border-[#292e42] flex items-center gap-4 text-sm">
             <span>QUALITY_SCORE: <strong className="text-[#9ece6a]">{news.qualityScore}/100</strong></span>
             <span>STATUS: <strong className="text-[#e0af68]">{news.pipelineStatus}</strong></span>
+            {news.factCheckScore !== null && news.factCheckScore < 80 && (
+              <span className="bg-[#f7768e]/10 text-[#f7768e] px-2 py-1 rounded font-bold border border-[#f7768e]/30 flex items-center gap-2">
+                <span className="text-lg">⚠</span> ALTO RIESGO DE ALUCINACIÓN ({news.factCheckScore}/100)
+              </span>
+            )}
           </div>
         </div>
         

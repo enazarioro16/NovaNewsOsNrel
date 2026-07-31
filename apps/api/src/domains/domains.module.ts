@@ -10,6 +10,7 @@ import { DistributionModule } from './distribution/distribution.module';
 import { ResearchAgent } from './ai/agents/research.agent';
 import { EditorAgent } from './ai/agents/editor.agent';
 import { SeoAgent } from './ai/agents/seo.agent';
+import { FactCheckerAgent } from './ai/agents/fact-checker.agent';
 import { IngestionController } from './content/ingestion.controller';
 import { domainMetricProviders } from './metrics.providers';
 
@@ -24,6 +25,7 @@ import { domainMetricProviders } from './metrics.providers';
     ResearchAgent,
     EditorAgent,
     SeoAgent,
+    FactCheckerAgent,
     ...domainMetricProviders
   ],
 })

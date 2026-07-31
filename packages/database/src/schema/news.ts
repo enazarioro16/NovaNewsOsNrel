@@ -25,6 +25,7 @@ export const newsTable = pgTable('news', {
   tags: jsonb('tags').$type<string[]>(),
   semanticEmbedding: vector('semantic_embedding'),
   qualityScore: integer('quality_score').default(0),
+  factCheckScore: integer('fact_check_score').default(0),
   socialScript: jsonb('social_script'), // ShortVideoScript for social media distribution
   pipelineStatus: text('pipeline_status').notNull().default('INGESTED'), // INGESTED, PROCESSED, REVIEW_PENDING, APPROVED, PUBLISHED, REJECTED
   publishedAt: timestamp('published_at'),
