@@ -62,7 +62,7 @@ export default async function NewsDetailView({ params }: { params: { id: string 
             
             <div className="mb-4">
               <p className="text-xs text-[#565f89] mb-1">ORIGINAL_URL</p>
-              <a href={news.originalUrl} target="_blank" className="text-[#7dcfff] hover:underline text-sm break-all">
+              <a href={news.originalUrl || '#'} target="_blank" className="text-[#7dcfff] hover:underline text-sm break-all">
                 {news.originalUrl}
               </a>
             </div>
@@ -106,7 +106,7 @@ export default async function NewsDetailView({ params }: { params: { id: string 
                 <label className="block text-xs text-[#7dcfff] mb-2 font-bold uppercase">SEO_Title_Optimized</label>
                 <input 
                   name="seoTitle" 
-                  defaultValue={news.seoTitle} 
+                  defaultValue={news.seoTitle || ''} 
                   className="w-full bg-[#1a1b26] border border-[#292e42] rounded px-3 py-2 text-white focus:outline-none focus:border-[#7dcfff] transition-colors" 
                 />
               </div>
@@ -115,7 +115,7 @@ export default async function NewsDetailView({ params }: { params: { id: string 
                 <label className="block text-xs text-[#7dcfff] mb-2 font-bold uppercase">Curated_Summary (Bias-Free)</label>
                 <textarea 
                   name="summary" 
-                  defaultValue={news.summary} 
+                  defaultValue={news.summary || ''} 
                   className="w-full flex-grow bg-[#1a1b26] border border-[#292e42] rounded px-3 py-2 text-white focus:outline-none focus:border-[#7dcfff] font-sans leading-relaxed transition-colors resize-none" 
                 />
               </div>

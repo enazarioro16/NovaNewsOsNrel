@@ -87,7 +87,7 @@ export default async function ArticlePage({ params }: { params: { id: string } }
 
           <footer className="border-t border-[#292e42] pt-8 mt-12">
             <a 
-              href={article.originalUrl} 
+              href={article.originalUrl || '#'} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#2ac3de] hover:bg-[#7dcfff] text-[#1a1b26] font-bold py-3 px-6 rounded transition-colors font-mono uppercase tracking-wider text-sm"
