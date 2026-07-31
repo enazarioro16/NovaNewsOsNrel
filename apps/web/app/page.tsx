@@ -1,75 +1,120 @@
 import { auth } from '../auth';
-import { redirect } from 'next/navigation';
-import { db, newsTable, users, userBookmarks } from '@novanews/database';
-import { eq, desc, arrayContains, sql, and } from 'drizzle-orm';
+import { db, newsTable, userBookmarks } from '@novanews/database';
+import { eq, desc } from 'drizzle-orm';
 import BookmarkButton from './components/BookmarkButton';
+import Link from 'next/link';
 
-export default async function FeedPage() {
+export const metadata = {
+  title: 'NovaNews // Premium Tech Feed',
+  description: 'Noticias tecnológicas curadas por Inteligencia Artificial. Libre de sesgos, optimizadas para el lector moderno.',
+};
+
+export default async function PublicFrontpage() {
   const session = await auth();
-  if (!session?.user?.id) redirect('/login');
 
-  // Obtener preferencias del usuario
-  const [currentUser] = await db.select().from(users).where(eq(users.id, session.user.id));
-  
-  if (!currentUser.preferences || (currentUser.preferences as string[]).length === 0) {
-    redirect('/onboarding');
+  // SSR Puro: Fetching super rápido desde Drizzle
+  // RESTRICCIÓN VITAL: Solo noticias 'PUBLISHED'
+  const feed = await db.select().from(newsTable)
+    .where(eq(newsTable.pipelineStatus, 'PUBLISHED'))
+    .orderBy(desc(newsTable.publishedAt));
+
+  // Opcional: Obtener bookmarks si el usuario está autenticado
+  let bookmarkedNewsIds = new Set<string>();
+  if (session?.user?.id) {
+    const myBookmarks = await db.select().from(userBookmarks).where(eq(userBookmarks.userId, session.user.id));
+    bookmarkedNewsIds = new Set(myBookmarks.map(b => b.newsId));
   }
 
-  const prefs = currentUser.preferences as string[];
-
-  // Obtener feed B2C filtrando por Tags mediante SQL dinámico (relacional MVP) y ordenando por QualityScore
-  const feed = await db.select().from(newsTable)
-    .where(
-      and(
-        eq(newsTable.pipelineStatus, 'PUBLISHED'),
-        sql`${newsTable.tags} ?| array[${sql.join(prefs, sql`, `)}]`
-      )
-    )
-    .orderBy(desc(newsTable.qualityScore), desc(newsTable.publishedAt));
-
-  // Obtener bookmarks del usuario actual para inicializar el Optimistic UI
-  const myBookmarks = await db.select().from(userBookmarks).where(eq(userBookmarks.userId, session.user.id));
-  const bookmarkedNewsIds = new Set(myBookmarks.map(b => b.newsId));
-
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', fontFamily: 'system-ui' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1>Tu Feed Inteligente</h1>
-          <p style={{ color: '#666' }}>Basado en: {prefs.join(', ')}</p>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <a href="/bookmarks" style={{ textDecoration: 'none', color: '#0070f3', fontWeight: 'bold' }}>Mis Guardados</a>
-          <a href="/api/auth/signout" style={{ textDecoration: 'none', color: '#dc3545', fontWeight: 'bold' }}>Salir</a>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#0f111a] text-[#8f9bb3] font-mono p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Público Cibernético */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#1f2335] pb-6 mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight uppercase">
+              NOVA_NEWS <span className="text-[#7dcfff]">//</span> PUBLIC_FEED
+            </h1>
+            <p className="text-sm mt-2 text-[#565f89]">Inteligencia Artificial curando el ruido tecnológico mundial.</p>
+          </div>
+          <div className="flex gap-4 text-sm font-bold">
+            {session ? (
+              <>
+                <Link href="/bookmarks" className="text-[#9ece6a] hover:text-white transition-colors uppercase tracking-wider">
+                  [ My_Archive ]
+                </Link>
+                <Link href="/editor" className="text-[#bb9af7] hover:text-white transition-colors uppercase tracking-wider">
+                  [ Editor_Hub ]
+                </Link>
+                <a href="/api/auth/signout" className="text-[#f7768e] hover:text-white transition-colors uppercase tracking-wider">
+                  [ Disconnect ]
+                </a>
+              </>
+            ) : (
+              <a href="/login" className="bg-[#2ac3de] hover:bg-[#7dcfff] text-[#1a1b26] py-2 px-4 rounded transition-colors uppercase">
+                Initialize_Session
+              </a>
+            )}
+          </div>
+        </header>
 
-      <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {feed.length === 0 ? (
-          <p>No hay noticias publicadas para tus intereses. ¡El bot está trabajando!</p>
-        ) : (
-          feed.map(news => (
-            <article key={news.id} style={{ padding: '1.5rem', border: '1px solid #eaeaea', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>{news.seoTitle}</h2>
-                <span style={{ background: '#f1f3f5', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                  Score: {news.qualityScore}
-                </span>
-              </div>
-              <p style={{ color: '#444', lineHeight: '1.6' }}>{news.summary}</p>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {news.tags?.map(tag => (
-                    <span key={tag} style={{ fontSize: '0.8rem', color: '#888', border: '1px solid #ddd', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>#{tag}</span>
-                  ))}
-                </div>
-                <BookmarkButton newsId={news.id} initialIsBookmarked={bookmarkedNewsIds.has(news.id)} />
-              </div>
-            </article>
-          ))
-        )}
-      </main>
+        {/* Grilla Inmersiva de Tarjetas (Cards) */}
+        <main>
+          {feed.length === 0 ? (
+            <div className="text-center py-20 border border-dashed border-[#292e42] rounded-lg">
+              <p className="text-[#f7768e] text-lg font-bold tracking-widest uppercase">ERR: NO_DATA_STREAM</p>
+              <p className="text-[#565f89] mt-2">El motor de IA está procesando la web. Vuelve pronto.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {feed.map(news => (
+                <article 
+                  key={news.id} 
+                  className="bg-[#1a1b26] border border-[#292e42] rounded-lg overflow-hidden flex flex-col hover:border-[#7dcfff] transition-all hover:shadow-[0_0_15px_rgba(125,207,255,0.1)] group relative"
+                >
+                  <div className="p-6 flex-grow flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="text-xs text-[#565f89] font-bold">
+                        {news.publishedAt ? new Date(news.publishedAt).toLocaleDateString() : 'N/A'}
+                      </div>
+                      <span className="bg-[#292e42] text-[#9ece6a] px-2 py-0.5 rounded text-xs font-bold border border-[#3b4261]">
+                        Q-Score: {news.qualityScore || 0}
+                      </span>
+                    </div>
+                    
+                    <Link href={`/article/${news.id}`} className="group-hover:text-white transition-colors">
+                      <h2 className="text-lg font-bold text-[#c0caf5] mb-3 leading-tight line-clamp-3">
+                        {news.seoTitle || news.title}
+                      </h2>
+                    </Link>
+
+                    <p className="text-[#737aa2] text-sm line-clamp-4 leading-relaxed flex-grow">
+                      {news.summary}
+                    </p>
+
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      {news.tags?.slice(0, 3).map(tag => (
+                        <span key={tag} className="text-xs text-[#bb9af7] bg-[#bb9af7]/10 px-2 py-1 rounded">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-[#1f2335] px-6 py-3 border-t border-[#292e42] flex justify-between items-center">
+                    <Link href={`/article/${news.id}`} className="text-xs font-bold text-[#7dcfff] uppercase hover:underline">
+                      Read_Payload &rarr;
+                    </Link>
+                    {session && (
+                      <BookmarkButton newsId={news.id} initialIsBookmarked={bookmarkedNewsIds.has(news.id)} />
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
