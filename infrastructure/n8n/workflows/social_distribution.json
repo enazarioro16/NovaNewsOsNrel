@@ -1,0 +1,124 @@
+{
+  "name": "Social Distribution Bot (TICKET-013)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "distribution",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "c1f7a2d8-99eb-4a6f-b258-3cc1d56e7e43",
+      "name": "Webhook Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "distribution"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "telegram_message",
+              "value": "=🚨 *NUEVA NOTICIA: {{$json.body.title}}*\n\n{{$json.body.summary}}\n\n🔗 [Leer más en NovaNews]({{$json.body.url}})\n\n{{$json.body.tags.map(t => '#' + t).join(' ')}}"
+            },
+            {
+              "name": "twitter_message",
+              "value": "={{$json.body.title}}\n\n{{$json.body.url}}\n\n{{$json.body.tags.slice(0, 3).map(t => '#' + t).join(' ')}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e45b67a1-8d0c-4b52-b8e7-f1c2d3a4b5c6",
+      "name": "Format Messages",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{$json.telegram_message}}",
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "id": "b3e2d1c9-7a5f-4d8e-9b6c-e1f2d3a4b5c6",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        700,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{$json.twitter_message}}",
+        "additionalFields": {}
+      },
+      "id": "a1b2c3d4-e5f6-4g7h-8i9j-k0l1m2n3o4p5",
+      "name": "Send to Twitter / X",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        700,
+        400
+      ],
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "YOUR_TWITTER_CREDS_ID",
+          "name": "Twitter API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Receiver": {
+      "main": [
+        [
+          {
+            "node": "Format Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Messages": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send to Twitter / X",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7g8h9i0-j1k2-l3m4-n5o6-p7q8r9s0t1u2"
+}
