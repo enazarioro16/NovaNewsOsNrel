@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "nest build",
     "start": "node dist/main.js",
-    "dev": "tsc --watch",
+    "dev": "nest start --watch",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\""
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@nestjs/cli": "^11.0.24",
     "@novanews/config": "workspace:*",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
