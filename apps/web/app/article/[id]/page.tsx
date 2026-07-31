@@ -4,6 +4,7 @@ import { eq, and } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import AudioPlayer from './components/AudioPlayer';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -68,12 +69,27 @@ export default async function ArticlePage({ params }: { params: { id: string } }
               {article.seoTitle || article.title}
             </h1>
 
-            <div className="flex gap-2 flex-wrap">
-              {article.tags?.map(tag => (
-                <span key={tag} className="text-xs text-[#9ece6a] bg-[#9ece6a]/10 px-2 py-1 rounded font-mono">
-                  #{tag}
-                </span>
-              ))}
+            <div className="relative">
+              <div className={`flex gap-2 flex-wrap ${!session ? 'blur-sm select-none' : ''}`}>
+                {article.factCheckScore !== null && (
+                  <span className={`text-xs px-2 py-1 rounded font-mono font-bold ${article.factCheckScore >= 80 ? 'text-[#9ece6a] bg-[#9ece6a]/10' : 'text-[#f7768e] bg-[#f7768e]/10'}`}>
+                    FACT_SCORE: {article.factCheckScore}/100
+                  </span>
+                )}
+                {article.tags?.map(tag => (
+                  <span key={tag} className="text-xs text-[#7dcfff] bg-[#7dcfff]/10 px-2 py-1 rounded font-mono">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+              
+              {!session && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#1a1b26]/50 rounded z-10 backdrop-blur-[2px]">
+                  <Link href="/api/auth/signin" className="bg-[#bb9af7] hover:bg-[#d5b4fd] text-[#1a1b26] text-xs font-bold px-4 py-2 rounded uppercase tracking-wider transition-colors shadow-lg">
+                    [ LOGIN TO DECRYPT ANALYSIS ]
+                  </Link>
+                </div>
+              )}
             </div>
           </header>
 
@@ -88,24 +104,10 @@ export default async function ArticlePage({ params }: { params: { id: string } }
               </div>
               
               <div className="flex-1">
-                {isPro ? (
-                  <audio 
-                    controls 
-                    src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${article.audioUrl}`}
-                    className="w-full h-10 rounded outline-none"
-                  >
-                    Tu navegador no soporta el elemento de audio.
-                  </audio>
-                ) : (
-                  <div className="bg-[#1a1b26] p-3 rounded flex items-center justify-between border border-[#f7768e]/30">
-                    <span className="text-[#f7768e] text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                      <span>🔒</span> CONTENIDO_BLOQUEADO
-                    </span>
-                    <Link href="/pricing" className="bg-[#bb9af7] hover:bg-[#d5b4fd] text-[#1a1b26] text-xs font-bold px-3 py-1 rounded uppercase tracking-wider transition-colors">
-                      UPGRADE_PRO
-                    </Link>
-                  </div>
-                )}
+                <AudioPlayer 
+                  audioUrl={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${article.audioUrl}`} 
+                  isPro={isPro} 
+                />
               </div>
             </div>
           )}
