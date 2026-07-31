@@ -69,5 +69,36 @@ export class DistributionService {
       .where(eq(newsTable.id, newsId));
 
     this.logger.log(`[Distribution] Guion generado y guardado para ${newsId}`);
+
+    // Disparar Webhook hacia n8n para distribución omnicanal
+    await this.triggerDistributionWebhook(news, scriptData);
+  }
+
+  private async triggerDistributionWebhook(news: any, scriptData: ShortVideoScript): Promise<void> {
+    const webhookUrl = process.env.N8N_DISTRIBUTION_WEBHOOK_URL || 'http://localhost:5678/webhook/distribution';
+    
+    try {
+      this.logger.log(`[Distribution] Disparando webhook a n8n en ${webhookUrl}`);
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newsId: news.id,
+          title: news.seoTitle || news.title,
+          url: `https://novanewsosnrel.com/article/${news.id}`,
+          summary: news.summary,
+          tags: news.tags,
+          socialScript: scriptData
+        })
+      });
+
+      if (!response.ok) {
+        this.logger.error(`[Distribution] Falló el webhook n8n: ${response.status}`);
+      } else {
+        this.logger.log(`[Distribution] Webhook de distribución entregado exitosamente.`);
+      }
+    } catch (error) {
+      this.logger.error(`[Distribution] Error crítico al disparar webhook: ${error}`);
+    }
   }
 }
